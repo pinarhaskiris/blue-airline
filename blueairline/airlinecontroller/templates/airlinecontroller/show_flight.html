@@ -1,0 +1,18 @@
+{% extends "airlinecontroller/layout.html" %}
+{% load static %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'create_flight' %}">Create Flight</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
+        <hr>
+    {% endif %}
+
+    <div>
+        {{ f_dep_airport }}
+        {{ f_des_airport }}
+        {{ f_dep_time }}
+        {{ f_arr_time }}
+    </div>
+    
+{% endblock %}

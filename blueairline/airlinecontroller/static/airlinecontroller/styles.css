@@ -1,0 +1,31 @@
+.one_flight {
+	margin: 10px;
+}
+
+.login-btn {
+	float: right;
+}
+
+a:last-of-type {
+	margin-left: auto;
+  }
+#blue-airlines-header {
+	margin-top: 15px;
+	font-weight: 800;
+	font-size: 3.5em;
+}
+
+.flight-container {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.small-flight-container {
+	display: flex;
+	flex-direction: column;
+}
+
+.plane-icon {
+	margin: 15px;
+}
