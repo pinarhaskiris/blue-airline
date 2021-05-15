@@ -40,30 +40,53 @@ def create_flight(request):
 
 
 def update_flight(request):
+    is_valid = True
+
     if request.method == "POST":
         # Attempt to sign user in
         dep_airport = request.POST["dep_airport"]
         des_airport = request.POST["des_airport"]
         dep_date = request.POST["dep_date"]
         arr_date = request.POST["arr_date"]
-        flight_crew = request.POST["flight_crew_select"]
-        airplane = request.POST["airplane_select"]
+        flight_crew_name = request.POST["flight_crew_select"]
+        airplane_name = request.POST["airplane_select"]
         flight_scheduler = request.user
+        #1- aynı tarihte iki uçusa aynı uçak kalkmaz & flight crew atanmaz - yapıldı
+        #2- kalkan henüz inmediyse oluşturma
+        #3- indiyse de indiği havalimanından kalkabilir
+        same_dep_flight = Flight.objects.filter(departure_date=dep_date)
+        flights = Flight.objects.all()
 
-        try:
-            flightItem = Flight.create_flight(
-                dep_airport, des_airport, dep_date, arr_date,
-                Airplane.objects.get(plane_type="Big"),
-                FlightCrew.objects.get(pilot="Angelina"),
-                User.objects.get(username=flight_scheduler.username))
-            flightItem.save()
+        if same_dep_flight != None:
+            for flight in same_dep_flight:
+                if flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name:
+                    is_valid = False
 
-        except IntegrityError as e:
-            print(e)
+        else: #not correct
+            for flight in flights:
+                if flight.arrival_date >= dep_date:
+                    is_valid = False
+
+
+        if is_valid == True:
+            try:
+                flightItem = Flight.create_flight(
+                    dep_airport, des_airport, dep_date, arr_date,
+                    Airplane.objects.get(plane_name=airplane_name),
+                    FlightCrew.objects.get(crew_name=flight_crew_name),
+                    User.objects.get(username=flight_scheduler.username))
+                flightItem.save()
+
+            except IntegrityError as e:
+                print(e)
+                return render(request, "airlinecontroller/index.html", {
+                    "message": "Flight already exists."
+                })
+            return HttpResponseRedirect(reverse("index"))
+        else:
             return render(request, "airlinecontroller/index.html", {
-                "message": "Flight already exists."
+                "flights": flights 
             })
-        return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "airlinecontroller/index.html")
 

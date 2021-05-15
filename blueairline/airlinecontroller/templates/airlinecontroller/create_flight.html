@@ -12,16 +12,16 @@
             To: <input id="des_airport" name="des_airport" class="form-control">
         </div>
         <div class="form-group">
-            Departure Date: <input id="dep_date" name="dep_date" class="form-control" type="date">
+            Departure Date: <input id="dep_date" name="dep_date" class="form-control" type="datetime-local" value="2018-06-12T19:30">
         </div>
         <div class="form-group">
-            Arrival Date: <input id="arr_date" name="arr_date" class="form-control" type="date">
+            Arrival Date: <input id="arr_date" name="arr_date" class="form-control" type="datetime-local" value="2018-06-12T19:30">
         </div>
 
         <div> Flight Crew:
             <select id="flight_crew_select" name="flight_crew_select">
                 {% for crew in flight_crews %}
-                    <option value="Angelina">{{ crew.pilot }}</option>
+                    <option value="{{ crew.crew_name }}">{{ crew.crew_name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -29,7 +29,7 @@
         <div> Airplane:
             <select id="airplane_select" name="airplane_select">
                 {% for airplane in airplanes %}
-                    <option value="Small">{{ airplane.plane_type }}</option>
+                    <option value="{{ airplane.plane_name }}">{{ airplane.plane_name }}</option>
                 {% endfor %}
             </select>
         </div>

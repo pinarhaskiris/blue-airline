@@ -10,21 +10,30 @@ class Seat(models.Model):
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="seats")
 
 class FlightCrew(models.Model):
+    crew_name = models.CharField(max_length=64, default="")
     pilot = models.CharField(max_length=64)
     co_pilot = models.CharField(max_length=64)
     flight_engineer = models.CharField(max_length=64)
     navigator = models.CharField(max_length=64)
     flight_scheduler = models.ForeignKey("User", on_delete=models.CASCADE, related_name="crews")
 
+    def __str__(self):
+        return f"{self.crew_name}"
+
+
 class Airplane(models.Model):
+    plane_name = models.CharField(max_length=64, default="")
     plane_type = models.CharField(max_length=64)
     capacity = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.plane_name}"
 
 class Flight(models.Model):
     departure_airport = models.CharField(max_length=5)
     destination_airport = models.CharField(max_length=5)
-    departure_date = models.DateField("Departure Date")
-    arrival_date = models.DateField("Arrival Date")
+    departure_date = models.DateTimeField("Departure Date")
+    arrival_date = models.DateTimeField("Arrival Date")
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="flights")
     flight_crew = models.ForeignKey("FlightCrew", on_delete=models.CASCADE, related_name="flights")
     flight_scheduler = models.ForeignKey("User", on_delete=models.CASCADE, related_name="flights")
@@ -33,6 +42,9 @@ class Flight(models.Model):
     def create_flight(cls, departure_airport, destination_airport, departure_date, arrival_date, airplane, flight_crew, flight_scheduler):
         flightItem = cls(departure_airport=departure_airport, destination_airport=destination_airport, departure_date=departure_date, arrival_date=arrival_date, airplane=airplane, flight_crew=flight_crew, flight_scheduler=flight_scheduler)
         return flightItem
+
+    def __str__(self):
+        return f"From: {self.departure_airport} to {self.destination_airport}"
 
     def serialize(self):
 	    return  {
