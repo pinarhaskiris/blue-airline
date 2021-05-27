@@ -56,7 +56,7 @@ def update_flight(request):
         #3- indiyse de indiği havalimanından kalkabilir
         same_dep_flight = Flight.objects.filter(departure_date=dep_date)
         flights = Flight.objects.all()
-
+        """
         if same_dep_flight != None:
             for flight in same_dep_flight:
                 if flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name:
@@ -67,7 +67,7 @@ def update_flight(request):
                 if flight.arrival_date >= dep_date:
                     is_valid = False
 
-
+"""
         if is_valid == True:
             try:
                 flightItem = Flight.create_flight(
