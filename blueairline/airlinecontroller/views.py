@@ -52,22 +52,27 @@ def update_flight(request):
         airplane_name = request.POST["airplane_select"]
         flight_scheduler = request.user
         #1- aynı tarihte iki uçusa aynı uçak kalkmaz & flight crew atanmaz - yapıldı
-        #2- kalkan henüz inmediyse oluşturma
-        #3- indiyse de indiği havalimanından kalkabilir
+        #2- kalkan henüz inmediyse oluşturma - yapıldı
+        #3- indiyse de indiği havalimanından kalkabilir- yapıldı
         same_dep_flight = Flight.objects.filter(departure_date=dep_date)
         flights = Flight.objects.all()
-        """
-        if same_dep_flight != None:
+        
+        if same_dep_flight != None: #aynı anda kalkan uçuş varsa
             for flight in same_dep_flight:
-                if flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name:
-                    is_valid = False
+                #aynı flight crew ya da airplane'i kullanamazlar
+                if (flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name):
+                    is_valid = False # TODO: show feedback
 
-        else: #not correct
+        else: #aynı anda kalkan uçuş yoksa
             for flight in flights:
-                if flight.arrival_date >= dep_date:
-                    is_valid = False
+                #kalkan uçuş inmeden yeniden uçak kaldırılamaz
+                if (flight.arrival_date >= dep_date and (flight.airplane.plane_name == airplane_name or flight.flight_crew.crew_name == flight_crew_name)):
+                    is_valid = False # TODO: show feedback
+                
+                #uçak indiyse de indiği yerden kaldırılmalı
+                elif (flight.airplane.plane_name == airplane_name or flight.flight_crew.crew_name == flight_crew_name) and flight.arrival_date <= dep_date and dep_airport != flight.destination_airport:
+                    is_valid = False # TODO: show feedback
 
-"""
         if is_valid == True:
             try:
                 flightItem = Flight.create_flight(
