@@ -45,7 +45,7 @@ class Flight(models.Model):
 
     def __str__(self):
         return f"From: {self.departure_airport} to {self.destination_airport}"
-
+"""
     def serialize(self):
 	    return  {
 			"id": self.id,
@@ -57,7 +57,7 @@ class Flight(models.Model):
             "flight_crew": self.flight_crew,
             "flight_scheduler": self.flight_scheduler
         }
-
+"""
 
 class Passenger(models.Model):
     name = models.CharField(max_length=64)

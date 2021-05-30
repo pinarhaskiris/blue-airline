@@ -11,26 +11,27 @@
     {% endif %}
 
     <h1>Available Flights</h1>
-
-    <ul class="list-group"></ul>
-    {% for flight in flights %}
-    <li class="list-group-item">
-       <div class="flight-container">
-           <div class="small-flight-container">
-                <div>{{ flight.departure_airport }}</div>
-                <div>{{ flight.departure_date }}</div>
-           </div>
-        
-            <div class="plane-icon"><i class="fas fa-plane"></i></div>
-
-            <div class="small-flight-container">
-                <div>{{ flight.destination_airport }}</div>
-                <div>{{ flight.arrival_date }}</div>
+    <form action="{% url 'available_flights' %}" method="POST">
+        {% csrf_token %}
+        <div id="pas_part1">
+            <div> From:
+                <select id="departure_select" name="departure_select">
+                    {% for flight in flights %}
+                        <option value="{{ flight.departure_airport }}">{{ flight.departure_airport }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            
-            <a href="{% url 'show_flight' flight.id %}" class="select-flight-link">Select</a>
+            <div> To:
+                <select id="destination_select" name="destination_select">
+                    {% for flight in flights %}
+                        <option value="{{ destination_airport }}">{{ flight.destination_airport }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
-    </li> 
-    {% endfor %}
-    </ul>
+
+        <input type="submit" class="btn btn-primary"/>
+    </form>
+    
+
 {% endblock %}
