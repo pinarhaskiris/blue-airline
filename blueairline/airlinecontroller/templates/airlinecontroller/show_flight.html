@@ -8,13 +8,37 @@
         <hr>
     {% endif %}
 
-    <div>
-        {{ f_dep_airport }}
-        {{ f_des_airport }}
-        {{ f_dep_time }}
-        {{ f_arr_time }}
-    </div>
-
+    <h2>Book Flight</h2>
+    <form id="book_flight_form" action="{% url 'book_flight' flight.id %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            Name & Surname: <input id="pass_name_sur" name="pass_name_sur" class="form-control">
+        </div>
+        <div class="form-group">
+            Phone Number: <input id="pass_phone_num" name="pass_phone_num" class="form-control">
+        </div>
+        <div class="form-group">
+            Email Address: <input id="pass_mail_add" name="pass_mail_add" class="form-control">
+        </div>
+        <div class="form-group">
+            Credit Card Number: <input id="pass_card_num" name="pass_card_num" class="form-control">
+        </div>
+        <div class="form-group">
+            Safety Pin: <input id="pass_safety_pin" name="pass_safety_pin" class="form-control">
+        </div>
+<!--
+<div> Seat:
+            <select id="seat_select" name="seat_select">
+                {% for seat in seats %}
+                    <option value="{{ seat.seat_number }}">{{ seat.seat_number }}</option>
+                {% endfor %}
+            </select>
+        </div>
+-->
     
+        <input type="submit" class="btn btn-primary"/>
+    </form>
+
+    <a href="{% url 'index' %}">See All Flights</a>
     
 {% endblock %}

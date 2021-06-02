@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from datetime import datetime
+from django.db.models import Q
 
 from .models import User, Flight, Passenger, Ticket, Airplane, Seat, FlightCrew
 
@@ -17,14 +18,34 @@ def index(request):
         "flights": flights 
         })
 
+def book_flight(request, flight_id):
+    flightObject = Flight.objects.get(pk=flight_id)
+
+    if request.method == "POST":
+        pass_name_sur = request.POST["pass_name_sur"]
+        pass_phone_num = request.POST["pass_phone_num"]
+        pass_mail_add = request.POST["pass_mail_add"]
+        pass_card_num = request.POST["pass_card_num"]
+        pass_safety_pin = request.POST["pass_safety_pin"]
+
+        return render(request, "airlinecontroller/show_feedback.html", {
+            "pass_name_sur": pass_name_sur,
+            "pass_phone_num": pass_phone_num,
+            "pass_mail_add": pass_mail_add,
+            "pass_card_num": pass_card_num,
+            "pass_safety_pin": pass_safety_pin,
+            "flight": flightObject
+        })
+    else:
+        return render(request, "airlinecontroller/index.html")
+
 def available_flights(request):
     if request.method == "POST":
-        # Attempt to sign user in
         departure_select = request.POST["departure_select"]
         destination_select = request.POST["destination_select"]
 
-        available_flights = Flight.objects.filter(departure_airport=departure_select).filter(destination_airport=destination_select)
-        
+        available_flights = Flight.objects.filter(destination_airport=destination_select, departure_airport=departure_select)
+
         return render(request, "airlinecontroller/available_flights.html", {
             "available_flights": available_flights
         })
@@ -43,7 +64,8 @@ def show_flight(request, flight_id):
             "f_dep_airport": f_dep_airport,
             "f_des_airport": f_des_airport,
             "f_dep_time": f_dep_time,
-            "f_arr_time": f_arr_time
+            "f_arr_time": f_arr_time,
+            "flight": flightObject,
        })
 
 def create_flight(request):
@@ -77,16 +99,6 @@ def update_flight(request):
             for flight in same_dep_flight:
                 #aynı flight crew ya da airplane'i kullanamazlar
                 if (flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name):
-                    is_valid = False
-
-        else: #aynı anda kalkan uçuş yoksa
-            for flight in flights:
-                #kalkan uçuş inmeden yeniden uçak kaldırılamaz
-                if flight.arrival_date >= dep_date and (flight.airplane.plane_name == airplane_name or flight.flight_crew.crew_name == flight_crew_name):
-                    is_valid = False
-                
-                #uçak indiyse de indiği yerden kaldırılmalı
-                if (flight.airplane.plane_name == airplane_name or flight.flight_crew.crew_name == flight_crew_name) and flight.arrival_date <= dep_date and dep_airport != flight.destination_airport:
                     is_valid = False
 
         if is_valid == True:

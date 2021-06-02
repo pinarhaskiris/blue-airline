@@ -4,23 +4,23 @@
 {% block body %}
 <ul class="list-group"></ul>
     {% for flight in available_flights %}
-    <li class="list-group-item">
-       <div class="flight-container">
-           <div class="small-flight-container">
-                <div>{{ flight.departure_airport }}</div>
-                <div>{{ flight.departure_date }}</div>
-           </div>
-        
+        <li class="list-group-item">
+        <div class="flight-container">
+            <div class="small-flight-container">
+                    <div>{{ flight.departure_airport }}</div>
+                    <div>{{ flight.departure_date }}</div>
+            </div>
+            
             <div class="plane-icon"><i class="fas fa-plane"></i></div>
 
             <div class="small-flight-container">
                 <div>{{ flight.destination_airport }}</div>
                 <div>{{ flight.arrival_date }}</div>
             </div>
-            
+                
             <a href="{% url 'show_flight' flight.id %}" class="select-flight-link">Select</a>
         </div>
-    </li> 
+        </li>
     {% endfor %}
     </ul>
 

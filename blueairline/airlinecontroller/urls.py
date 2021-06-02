@@ -11,4 +11,5 @@ urlpatterns = [
     path("update_flight", views.update_flight, name="update_flight"),
     path("/<int:flight_id>", views.show_flight, name="show_flight"),
     path("available_flights", views.available_flights, name="available_flights"),
+    path("book_flight/<int:flight_id>", views.book_flight, name="book_flight"),
 ]

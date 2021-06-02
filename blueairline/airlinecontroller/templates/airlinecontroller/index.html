@@ -24,7 +24,7 @@
             <div> To:
                 <select id="destination_select" name="destination_select">
                     {% for flight in flights %}
-                        <option value="{{ destination_airport }}">{{ flight.destination_airport }}</option>
+                        <option value="{{ flight.destination_airport }}">{{ flight.destination_airport }}</option>
                     {% endfor %}
                 </select>
             </div>
