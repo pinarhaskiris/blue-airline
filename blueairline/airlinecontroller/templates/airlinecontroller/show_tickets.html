@@ -1,0 +1,34 @@
+{% extends "airlinecontroller/layout.html" %}
+{% load static %}
+
+{% block body %}
+<ul class="list-group"></ul>
+    {% for ticket in tickets %}
+        <li class="list-group-item">
+        <div class="flight-container">
+
+            <div class="small-flight-container">
+                <div>Passenger: {{ ticket.passenger.name }} {{ ticket.passenger.surname }}</div>
+                <div>Gate Number: {{ ticket.gate_number }}</div>
+                <div>Status: {{ ticket.refund_status }}</div>
+                <div>Ticket Number: {{ ticket.pk }}</div>
+            </div>
+
+            <div class="small-flight-container">
+                    <div>{{ ticket.flight.departure_airport }}</div>
+                    <div>{{ ticket.flight.departure_date }}</div>
+            </div>
+            
+            <div class="plane-icon"><i class="fas fa-plane"></i></div>
+
+            <div class="small-flight-container">
+                <div>{{ ticket.flight.destination_airport }}</div>
+                <div>{{ ticket.flight.arrival_date }}</div>
+            </div>
+                
+        </div>
+        </li>
+    {% endfor %}
+    </ul>
+
+{% endblock %}

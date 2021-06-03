@@ -74,13 +74,28 @@ class Passenger(models.Model):
     email_address = models.CharField(max_length=64)
     phone_number = models.IntegerField(default=0)
 
+    @classmethod
+    def create_passenger(cls, name, surname, email_address, phone_number):
+        passengerItem = cls(name=name, surname=surname, email_address=email_address, phone_number=phone_number)
+        return passengerItem
+
+    def __str__(self):
+        return f"{self.name} {self.surname}"
+
 class Ticket(models.Model):
-    seat_number = models.IntegerField(default=0)
+    seat_number = models.CharField(max_length=64)
     price = models.IntegerField(default=0)
     gate_number = models.IntegerField(default=0)
     refund_status = models.CharField(max_length=64)
     flight = models.ForeignKey("Flight", on_delete=models.CASCADE, related_name="tickets")
     passenger = models.ForeignKey("Passenger", on_delete=models.CASCADE, related_name="tickets")
 
+    @classmethod
+    def create_ticket(cls, seat_number, price, gate_number, refund_status, flight, passenger):
+        ticketItem = cls(seat_number=seat_number, price=price, gate_number=gate_number, refund_status=refund_status, flight=flight, passenger=passenger)
+        return ticketItem
+
+    def __str__(self):
+        return f"Seat Number: {self.seat_number} ID: {self.pk} Status: {self.refund_status}"
 
 

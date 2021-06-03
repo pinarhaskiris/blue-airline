@@ -9,6 +9,9 @@
     {% else %}
         <a class="btn btn-sm btn-outline-primary login-btn" href="{% url 'login' %}">Login as Flight Scheduler</a>
     {% endif %}
+        <a class="btn btn-sm btn-outline-primary refund-btn" href="{% url 'show_refund_form' %}">Refund Ticket</a>
+        <a class="btn btn-sm btn-outline-primary question-ticket-btn" href="{% url 'show_question_ticket_form' %}">Question Ticket</a>
+
 
     <h1>Available Flights</h1>
     <form action="{% url 'available_flights' %}" method="POST">
@@ -16,15 +19,16 @@
         <div id="pas_part1">
             <div> From:
                 <select id="departure_select" name="departure_select">
-                    {% for flight in flights %}
-                        <option value="{{ flight.departure_airport }}">{{ flight.departure_airport }}</option>
+                    {% for dep in departure_airports %}
+
+                        <option value="{{ dep }}">{{ dep }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div> To:
                 <select id="destination_select" name="destination_select">
-                    {% for flight in flights %}
-                        <option value="{{ flight.destination_airport }}">{{ flight.destination_airport }}</option>
+                    {% for des in destination_airports %}
+                        <option value="{{ des }}">{{ des }}</option>
                     {% endfor %}
                 </select>
             </div>

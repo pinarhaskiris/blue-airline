@@ -1,0 +1,19 @@
+{% extends "airlinecontroller/layout.html" %}
+{% load static %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'create_flight' %}">Create Flight</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
+        <hr>
+    {% else %}
+        <a class="btn btn-sm btn-outline-primary login-btn" href="{% url 'login' %}">Login as Flight Scheduler</a>
+    {% endif %}
+
+    <h1>Completed.</h1>
+    <h2>Ticket Details</h2>
+    <div>
+        <p>Your ticket has been refunded. You can close the tab now.</p>
+    </div>
+
+{% endblock %}

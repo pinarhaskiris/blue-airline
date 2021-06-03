@@ -11,9 +11,16 @@ from .models import User, Flight, Passenger, Ticket, Airplane, Seat, FlightCrew
 def index(request):
     # Authenticated users view their inbox
     flights = Flight.objects.all()
+    departure_airports = set()
+    destination_airports = set()
 
+    for flight in flights:
+        departure_airports.add(flight.departure_airport)
+        destination_airports.add(flight.destination_airport)
+    
     return render(request, "airlinecontroller/index.html", {
-        "flights": flights 
+        "departure_airports": departure_airports,
+        "destination_airports": destination_airports
         })
 
 def init_seats(airplane):
@@ -53,10 +60,42 @@ def book_flight(request, flight_id):
         pass_safety_pin = request.POST["pass_safety_pin"]
         seat_select = request.POST["seat_select"]
 
+        #SELECTED SEAT IS OCCUPIED NOW
         airplane = flightObject.airplane
         seat = Seat.objects.get(airplane=airplane, seat_number=seat_select)
         seat.is_empty = False
         seat.save()
+
+        name_sur_arr = pass_name_sur.split()
+
+        #CREATE PASSENGER
+        previous_passenger = Passenger.objects.filter(name=name_sur_arr[0], surname=name_sur_arr[1])
+        if (len(previous_passenger) == 0):
+            try:
+                passengerItem = Passenger.create_passenger(
+                    name_sur_arr[0], name_sur_arr[1], pass_mail_add, pass_phone_num)
+                passengerItem.save()
+
+            except IntegrityError as e:
+                print(e)
+                return render(request, "airlinecontroller/index.html", {
+                    "message": "Passenger already exists."
+                })
+
+        #CREATE TICKET
+        try:
+            ticketItem = Ticket.create_ticket(
+                seat_select, 100, 12, "active", 
+                Flight.objects.get(pk=flight_id),
+                Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], email_address=pass_mail_add, phone_number=pass_phone_num))
+            ticketItem.save()
+
+        except IntegrityError as e:
+            print(e)
+            return render(request, "airlinecontroller/index.html", {
+                "message": "Ticket already exists."
+            })
+
 
         return render(request, "airlinecontroller/show_feedback.html", {
             "pass_name_sur": pass_name_sur,
@@ -102,13 +141,64 @@ def show_flight(request, flight_id):
             "available_seats": available_seats
        })
 
+
+def show_refund_form(request):
+    return render(request, "airlinecontroller/show_refund_form.html")
+
+def show_question_ticket_form(request):
+    return render(request, "airlinecontroller/show_question_ticket_form.html")
+
+def show_tickets(request):
+    if request.method == "POST":
+        pass_name_sur = request.POST["pass_name_sur"]
+        pass_phone_num = request.POST["pass_phone_num"]
+        pass_mail_add = request.POST["pass_mail_add"]
+
+        name_sur_arr = pass_name_sur.split()
+
+        passengerObject = Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], phone_number=pass_phone_num, email_address=pass_mail_add)
+        tickets = passengerObject.tickets.all()
+
+        return render(request, "airlinecontroller/show_tickets.html", {
+            "tickets": tickets
+        })
+
+    else:
+        return render(request, "airlinecontroller/index.html")
+
+
+def update_ticket(request):
+    if request.method == "POST":
+        pass_name_sur = request.POST["pass_name_sur"]
+        pass_phone_num = request.POST["pass_phone_num"]
+        pass_mail_add = request.POST["pass_mail_add"]
+        pass_ticket_id = request.POST["pass_ticket_id"]
+
+        ticketObject = Ticket.objects.get(pk=pass_ticket_id)
+        flightObject = ticketObject.flight
+        seatObject = Seat.objects.get(seat_number=ticketObject.seat_number, airplane=flightObject.airplane)
+
+        #ticket is refunded
+        ticketObject.refund_status = "refunded"
+        ticketObject.save()
+
+        #the seat is available now
+        seatObject.is_empty = True
+        seatObject.save()
+
+        return render(request, "airlinecontroller/refund_feedback.html")
+
+    else:
+        return render(request, "airlinecontroller/index.html")
+
+
 def create_flight(request):
     crews = FlightCrew.objects.all()
     airplanes = Airplane.objects.all()
     return render(request, "airlinecontroller/create_flight.html", {
             "flight_crews": crews,
             "airplanes": airplanes
-        })
+    })
 
 
 def update_flight(request):
