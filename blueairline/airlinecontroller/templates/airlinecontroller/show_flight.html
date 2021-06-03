@@ -26,15 +26,15 @@
         <div class="form-group">
             Safety Pin: <input id="pass_safety_pin" name="pass_safety_pin" class="form-control">
         </div>
-<!--
-<div> Seat:
+
+        <div> Seat:
             <select id="seat_select" name="seat_select">
-                {% for seat in seats %}
+                {% for seat in available_seats %}
                     <option value="{{ seat.seat_number }}">{{ seat.seat_number }}</option>
                 {% endfor %}
             </select>
         </div>
--->
+
     
         <input type="submit" class="btn btn-primary"/>
     </form>

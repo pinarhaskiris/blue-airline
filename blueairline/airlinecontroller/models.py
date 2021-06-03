@@ -8,6 +8,15 @@ class User(AbstractUser):
 class Seat(models.Model):
     seat_number = models.CharField(max_length=5)
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="seats")
+    is_empty = models.BooleanField(default=True)
+
+    @classmethod
+    def create_seat(cls, seat_number, airplane, is_empty):
+        seatItem = cls(seat_number=seat_number, airplane=airplane, is_empty=is_empty)
+        return seatItem
+
+    def __str__(self):
+        return f"{self.seat_number} of {self.airplane.plane_name}: Is Empty: {self.is_empty}"
 
 class FlightCrew(models.Model):
     crew_name = models.CharField(max_length=64, default="")

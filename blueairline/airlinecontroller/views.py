@@ -5,10 +5,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from datetime import datetime
-from django.db.models import Q
 
 from .models import User, Flight, Passenger, Ticket, Airplane, Seat, FlightCrew
-
 
 def index(request):
     # Authenticated users view their inbox
@@ -17,6 +15,32 @@ def index(request):
     return render(request, "airlinecontroller/index.html", {
         "flights": flights 
         })
+
+def init_seats(airplane):
+    alphabet = ["A", "B", "C", "D", "E", "F"]
+
+    for i in range(airplane.capacity):
+        for j in range(len(alphabet)):
+            seat_number = str(i) + alphabet[j]
+            prev_seats = Seat.objects.filter(seat_number=seat_number, airplane=airplane)
+
+            if (len(prev_seats) == 0):
+                try:
+                    seatItem = Seat.create_seat(seat_number, airplane, True)
+                    seatItem.save()
+
+                except IntegrityError as e:
+                    print(e)
+                    return render(request, "airlinecontroller/index.html", {
+                        "message": "Seat already exists."
+                    })
+
+def init_all_seats():
+    airplanes = Airplane.objects.all()
+    for airplane in airplanes:
+        init_seats(airplane)
+
+init_all_seats() #CREATE ALL SEATS FOR ALL AIRPLANES
 
 def book_flight(request, flight_id):
     flightObject = Flight.objects.get(pk=flight_id)
@@ -27,6 +51,12 @@ def book_flight(request, flight_id):
         pass_mail_add = request.POST["pass_mail_add"]
         pass_card_num = request.POST["pass_card_num"]
         pass_safety_pin = request.POST["pass_safety_pin"]
+        seat_select = request.POST["seat_select"]
+
+        airplane = flightObject.airplane
+        seat = Seat.objects.get(airplane=airplane, seat_number=seat_select)
+        seat.is_empty = False
+        seat.save()
 
         return render(request, "airlinecontroller/show_feedback.html", {
             "pass_name_sur": pass_name_sur,
@@ -34,7 +64,8 @@ def book_flight(request, flight_id):
             "pass_mail_add": pass_mail_add,
             "pass_card_num": pass_card_num,
             "pass_safety_pin": pass_safety_pin,
-            "flight": flightObject
+            "flight": flightObject,
+            "seat_select": seat_select
         })
     else:
         return render(request, "airlinecontroller/index.html")
@@ -59,6 +90,8 @@ def show_flight(request, flight_id):
     f_des_airport = flightObject.destination_airport
     f_dep_time = flightObject.departure_date
     f_arr_time = flightObject.arrival_date
+    airplane = flightObject.airplane
+    available_seats = Seat.objects.filter(airplane=airplane, is_empty=True)
     
     return render(request, "airlinecontroller/show_flight.html", {
             "f_dep_airport": f_dep_airport,
@@ -66,6 +99,7 @@ def show_flight(request, flight_id):
             "f_dep_time": f_dep_time,
             "f_arr_time": f_arr_time,
             "flight": flightObject,
+            "available_seats": available_seats
        })
 
 def create_flight(request):
