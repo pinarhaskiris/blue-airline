@@ -2,30 +2,18 @@
 {% load static %}
 
 {% block body %}
-    {% if user.is_authenticated %}
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'create_flight' %}">Create Flight</a>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
-        <hr>
-    {% else %}
-        <a class="btn btn-sm btn-outline-primary login-btn" href="{% url 'login' %}">Login as Flight Scheduler</a>
-    {% endif %}
-        <a class="btn btn-sm btn-outline-primary refund-btn" href="{% url 'show_refund_form' %}">Refund Ticket</a>
-        <a class="btn btn-sm btn-outline-primary question-ticket-btn" href="{% url 'show_question_ticket_form' %}">Question Ticket</a>
-
-
-    <h1>Available Flights</h1>
+    <h1 class="available_flights_header">Search for flights</h1>
     <form action="{% url 'available_flights' %}" method="POST">
         {% csrf_token %}
-        <div id="pas_part1">
-            <div> From:
+        <div class="filter-flight-container">
+            <div class="filter-menu"> From:
                 <select id="departure_select" name="departure_select">
                     {% for dep in departure_airports %}
-
                         <option value="{{ dep }}">{{ dep }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div> To:
+            <div class="filter-menu"> To:
                 <select id="destination_select" name="destination_select">
                     {% for des in destination_airports %}
                         <option value="{{ des }}">{{ des }}</option>

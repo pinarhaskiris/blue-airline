@@ -2,11 +2,6 @@
 {% load static %}
 
 {% block body %}
-    {% if user.is_authenticated %}
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'create_flight' %}">Create Flight</a>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
-        <hr>
-    {% endif %}
 
     <h2>Book Flight</h2>
     <form id="book_flight_form" action="{% url 'book_flight' flight.id %}" method="POST">

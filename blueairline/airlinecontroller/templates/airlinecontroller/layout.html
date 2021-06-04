@@ -15,6 +15,16 @@
     <body>
         <div class="container">
             <h1 id="blue-airlines-header">Blue Airlines</h1>
+                {% if user.is_authenticated %}
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'create_flight' %}">Create Flight</a>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>
+                {% else %}
+                <a class="btn btn-sm btn-outline-primary login-btn" href="{% url 'login' %}">Login as Flight Scheduler</a>
+                <a class="btn btn-sm btn-outline-primary refund-btn" href="{% url 'show_refund_form' %}">Refund Ticket</a>
+                <a class="btn btn-sm btn-outline-primary question-ticket-btn" href="{% url 'show_question_ticket_form' %}">Question Ticket</a>
+                
+                {% endif %}
+                <hr>
             {% block body %}
             {% endblock %}
         </div>
