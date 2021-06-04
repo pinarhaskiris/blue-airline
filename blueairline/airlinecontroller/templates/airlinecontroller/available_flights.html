@@ -19,6 +19,7 @@
             </div>
                 
             <a href="{% url 'show_flight' flight.id %}" class="select-flight-link">Select</a>
+            <a href="{% url 'delete_flight' flight.id %}" class="select-flight-link">Delete</a>
         </div>
         </li>
     {% endfor %}

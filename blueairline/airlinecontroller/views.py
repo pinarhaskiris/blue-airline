@@ -47,7 +47,19 @@ def init_all_seats():
     for airplane in airplanes:
         init_seats(airplane)
 
+
+def hour_to_day(hours, minutes):
+    hours = int(hours)
+    minutes = int(minutes)
+    return ((hours*60)+minutes)/(24*60)
+
+def date_time_to_day(arr):
+    day_sum_month = [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365]
+    result = int(arr[0]) + day_sum_month[int(arr[1])] + (int(arr[2])*365) + hour_to_day(arr[0], arr[1])
+    return result
+
 init_all_seats() #CREATE ALL SEATS FOR ALL AIRPLANES
+
 
 def book_flight(request, flight_id):
     flightObject = Flight.objects.get(pk=flight_id)
@@ -85,8 +97,8 @@ def book_flight(request, flight_id):
         #CREATE TICKET
         try:
             ticketItem = Ticket.create_ticket(
-                seat_select, 100, 12, "active", 
-                Flight.objects.get(pk=flight_id),
+                seat_select, "active", 
+                flightObject,
                 Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], email_address=pass_mail_add, phone_number=pass_phone_num))
             ticketItem.save()
 
@@ -104,7 +116,8 @@ def book_flight(request, flight_id):
             "pass_card_num": pass_card_num,
             "pass_safety_pin": pass_safety_pin,
             "flight": flightObject,
-            "seat_select": seat_select
+            "seat_select": seat_select,
+            "gate_number": flightObject.gate_number
         })
     else:
         return render(request, "airlinecontroller/index.html")
@@ -130,6 +143,8 @@ def show_flight(request, flight_id):
     f_dep_time = flightObject.departure_date
     f_arr_time = flightObject.arrival_date
     airplane = flightObject.airplane
+    price = flightObject.price
+    gate_number = flightObject.gate_number
     available_seats = Seat.objects.filter(airplane=airplane, is_empty=True)
     
     return render(request, "airlinecontroller/show_flight.html", {
@@ -138,9 +153,15 @@ def show_flight(request, flight_id):
             "f_dep_time": f_dep_time,
             "f_arr_time": f_arr_time,
             "flight": flightObject,
-            "available_seats": available_seats
+            "available_seats": available_seats,
+            "gate_number": gate_number,
+            "price": price
        })
 
+def delete_flight(request, flight_id):
+    flightObject = Flight.objects.get(pk=flight_id)
+    flightObject.delete()
+    return render(request, "airlinecontroller/index.html")
 
 def show_refund_form(request):
     return render(request, "airlinecontroller/show_refund_form.html")
@@ -161,7 +182,7 @@ def show_tickets(request):
 
         return render(request, "airlinecontroller/show_tickets.html", {
             "tickets": tickets
-        })
+        }) 
 
     else:
         return render(request, "airlinecontroller/index.html")
@@ -200,6 +221,28 @@ def create_flight(request):
             "airplanes": airplanes
     })
 
+def split_date_input(date):
+    #taking dates as string and splitting them for comparison - for form input
+    date = str(date)
+    date_base = date.split("T") #separate between the date and the time
+    date_date = date_base[0].split("-") #separate the day month and year
+    date_time = date_base[1].split(":") #separate the time for hours and minutes
+
+    print(f"\n\nSPLIT DATE INPUT OUTPUT: {[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]}\n\n")
+    #day, month, year, hour (in 24 hour format), minutes
+    return [date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
+
+def split_date_prev(date):
+    #taking dates as string and splitting them for comparison - for existing database flights
+    date = str(date)
+    date_base = date.split(" ") #separate the date and time
+    date_date = date_base[0].split("-") #separating the day month and year
+    date_time = date_base[1].split(":") #separating the hours and minutes and seconds
+    print(f"\n\nSPLIT DATE PREV OUTPUT: {[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]}\n\n")
+
+    #day, month, year, hour (in 24 hour format), minutes
+    return[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
+
 
 def update_flight(request):
     is_valid = True
@@ -212,10 +255,13 @@ def update_flight(request):
         arr_date = request.POST["arr_date"]
         flight_crew_name = request.POST["flight_crew_select"]
         airplane_name = request.POST["airplane_select"]
+        gate_number = request.POST["gate_number"]
+        price = request.POST["price"]
         flight_scheduler = request.user
         #1- aynı tarihte iki uçusa aynı uçak kalkmaz & flight crew atanmaz - yapıldı
         #2- kalkan henüz inmediyse oluşturma 
         #3- indiyse de indiği havalimanından kalkabilir
+        #4- kalktığı yere gidemez
         same_dep_flight = Flight.objects.filter(departure_date=dep_date)
         flights = Flight.objects.all()
         
@@ -224,6 +270,55 @@ def update_flight(request):
                 #aynı flight crew ya da airplane'i kullanamazlar
                 if (flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name):
                     is_valid = False
+    
+        #CONVERTING INPUT DATE FOR COMPARISON
+        dep_date_arr = split_date_input(dep_date)
+        arr_date_arr = split_date_input(arr_date)
+
+        dep_date_input = date_time_to_day(dep_date_arr) #departure date of input flight in days
+        arr_date_input = date_time_to_day(arr_date_arr) #arrival date of input flight in days
+
+        for flight in flights:
+            #CONVERTING PREV DATES FOR COMPARISON
+            prev_dep_date_arr = split_date_prev(flight.departure_date)
+            prev_arr_date_arr = split_date_prev(flight.arrival_date)
+
+            prev_dep_date = date_time_to_day(prev_dep_date_arr) #departure date of previous flight
+            prev_arr_date = date_time_to_day(prev_arr_date_arr) #arrival date of previous flight
+
+            print(f"prev_arr_date: {prev_arr_date}, dep_date_input: {dep_date_input}\n")
+
+            """
+            if the previous flight which uses the same crew or airplane hasn't landed, 
+            a flight with the same crew or airplane can not depart
+            """
+            if (prev_arr_date >= dep_date_input and (flight.flight_crew.crew_name==flight_crew_name or flight.airplane.plane_name==airplane_name)):
+                is_valid = False
+            
+            """
+            if the previous flight which uses the same crew or airplane has landed,
+            the new flight with the same crew or airplane should depart from the same airport
+            """
+            if (prev_arr_date < dep_date_input and (flight.flight_crew.crew_name==flight_crew_name or flight.airplane.plane_name==airplane_name) and flight.destination_airport != dep_airport):
+                is_valid = False
+
+            """
+            only one flight can departure from a gate, multiple flights can not use the same gate
+            """
+            
+        
+        """
+        destination and departure airport can not be the same
+        """
+        if (dep_airport == des_airport):
+            is_valid = False
+
+        """
+        a flight can not arrive to its destination before the departure date
+        """
+        if (dep_date >= arr_date):
+            is_valid = False
+
 
         if is_valid == True:
             try:
@@ -231,7 +326,8 @@ def update_flight(request):
                     dep_airport, des_airport, dep_date, arr_date,
                     Airplane.objects.get(plane_name=airplane_name),
                     FlightCrew.objects.get(crew_name=flight_crew_name),
-                    User.objects.get(username=flight_scheduler.username))
+                    User.objects.get(username=flight_scheduler.username),
+                    gate_number, price)
                 flightItem.save()
 
             except IntegrityError as e:

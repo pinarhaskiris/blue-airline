@@ -43,13 +43,15 @@ class Flight(models.Model):
     destination_airport = models.CharField(max_length=5)
     departure_date = models.DateTimeField("Departure Date")
     arrival_date = models.DateTimeField("Arrival Date")
+    gate_number = models.CharField(max_length=10, default="")
+    price = models.IntegerField(default=0)
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="flights")
     flight_crew = models.ForeignKey("FlightCrew", on_delete=models.CASCADE, related_name="flights")
     flight_scheduler = models.ForeignKey("User", on_delete=models.CASCADE, related_name="flights")
 
     @classmethod
-    def create_flight(cls, departure_airport, destination_airport, departure_date, arrival_date, airplane, flight_crew, flight_scheduler):
-        flightItem = cls(departure_airport=departure_airport, destination_airport=destination_airport, departure_date=departure_date, arrival_date=arrival_date, airplane=airplane, flight_crew=flight_crew, flight_scheduler=flight_scheduler)
+    def create_flight(cls, departure_airport, destination_airport, departure_date, arrival_date, airplane, flight_crew, flight_scheduler, gate_number, price):
+        flightItem = cls(departure_airport=departure_airport, destination_airport=destination_airport, departure_date=departure_date, arrival_date=arrival_date, airplane=airplane, flight_crew=flight_crew, flight_scheduler=flight_scheduler, gate_number=gate_number, price=price)
         return flightItem
 
     def __str__(self):
@@ -84,15 +86,13 @@ class Passenger(models.Model):
 
 class Ticket(models.Model):
     seat_number = models.CharField(max_length=64)
-    price = models.IntegerField(default=0)
-    gate_number = models.IntegerField(default=0)
     refund_status = models.CharField(max_length=64)
     flight = models.ForeignKey("Flight", on_delete=models.CASCADE, related_name="tickets")
     passenger = models.ForeignKey("Passenger", on_delete=models.CASCADE, related_name="tickets")
 
     @classmethod
-    def create_ticket(cls, seat_number, price, gate_number, refund_status, flight, passenger):
-        ticketItem = cls(seat_number=seat_number, price=price, gate_number=gate_number, refund_status=refund_status, flight=flight, passenger=passenger)
+    def create_ticket(cls, seat_number, refund_status, flight, passenger):
+        ticketItem = cls(seat_number=seat_number, refund_status=refund_status, flight=flight, passenger=passenger)
         return ticketItem
 
     def __str__(self):

@@ -15,5 +15,6 @@ urlpatterns = [
     path("show_refund_form", views.show_refund_form, name="show_refund_form"),
     path("update_ticket", views.update_ticket, name="update_ticket"),
     path("show_question_ticket_form", views.show_question_ticket_form, name="show_question_ticket_form"),
-    path("show_tickets", views.show_tickets, name="show_tickets")
+    path("show_tickets", views.show_tickets, name="show_tickets"),
+    path("delete_flight/<int:flight_id>", views.delete_flight, name="delete_flight"),
 ]
