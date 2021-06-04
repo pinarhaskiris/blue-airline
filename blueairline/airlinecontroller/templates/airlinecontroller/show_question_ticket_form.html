@@ -3,6 +3,9 @@
 
 {% block body %}
 
+    {% if message %}
+        <h4>{{ message }}</h4>
+    {% endif %}
     <h2>Question Ticket</h2>
     <form id="question-ticket-form" action="{% url 'show_tickets' %}" method="POST">
         {% csrf_token %}

@@ -2,6 +2,10 @@
 
 {% block body %}
 
+    {% if message %}
+        <h4>{{ message }}</h4>
+    {% endif %}
+
     <h2>Create Flight</h2>
     <form id="new_flight_form" action="{% url 'update_flight' %}" method="POST">
         {% csrf_token %}

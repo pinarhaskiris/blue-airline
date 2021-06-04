@@ -4,6 +4,10 @@
 	margin: 10px;
 }
 
+h4 {
+    color: red;
+}
+
 .login-btn {
 	float: right;
 }
@@ -44,7 +48,6 @@ a:last-of-type {
     margin-left: 5rem;
     margin-right: 5rem;
 }
-
 
 * {
     padding: 0;

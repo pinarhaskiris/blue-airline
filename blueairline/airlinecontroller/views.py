@@ -20,7 +20,8 @@ def index(request):
     
     return render(request, "airlinecontroller/index.html", {
         "departure_airports": departure_airports,
-        "destination_airports": destination_airports
+        "destination_airports": destination_airports,
+        "flights": flights
         })
 
 def init_seats(airplane):
@@ -47,7 +48,6 @@ def init_all_seats():
     for airplane in airplanes:
         init_seats(airplane)
 
-
 def hour_to_day(hours, minutes):
     hours = int(hours)
     minutes = int(minutes)
@@ -59,7 +59,6 @@ def date_time_to_day(arr):
     return result
 
 init_all_seats() #CREATE ALL SEATS FOR ALL AIRPLANES
-
 
 def book_flight(request, flight_id):
     flightObject = Flight.objects.get(pk=flight_id)
@@ -108,6 +107,11 @@ def book_flight(request, flight_id):
                 "message": "Ticket already exists."
             })
 
+        except Passenger.DoesNotExist:
+            return render(request, "airlinecontroller/show_flight.html", {
+                    "message": "Please provide correct information. One or more of the passenger information you have entered is not correct.",
+                    "flight": flightObject
+                })
 
         return render(request, "airlinecontroller/show_feedback.html", {
             "pass_name_sur": pass_name_sur,
@@ -159,9 +163,25 @@ def show_flight(request, flight_id):
        })
 
 def delete_flight(request, flight_id):
+    
     flightObject = Flight.objects.get(pk=flight_id)
     flightObject.delete()
-    return render(request, "airlinecontroller/index.html")
+
+    flights = Flight.objects.all()
+    departure_airports = set()
+    destination_airports = set()
+
+    for flight in flights:
+        departure_airports.add(flight.departure_airport)
+        destination_airports.add(flight.destination_airport)
+
+    return render(request, "airlinecontroller/index.html", {
+        "message": "The flight is deleted.",
+        "departure_airports": departure_airports,
+        "destination_airports": destination_airports,
+        "flights": flights
+    })
+
 
 def show_refund_form(request):
     return render(request, "airlinecontroller/show_refund_form.html")
@@ -176,8 +196,13 @@ def show_tickets(request):
         pass_mail_add = request.POST["pass_mail_add"]
 
         name_sur_arr = pass_name_sur.split()
+        try:
+            passengerObject = Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], phone_number=pass_phone_num, email_address=pass_mail_add)
+        except Passenger.DoesNotExist:
+            return render(request, "airlinecontroller/show_question_ticket_form.html", {
+                "message": "Please provide correct information. There is no passenger matching with the information you have entered."
+            })
 
-        passengerObject = Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], phone_number=pass_phone_num, email_address=pass_mail_add)
         tickets = passengerObject.tickets.all()
 
         return render(request, "airlinecontroller/show_tickets.html", {
@@ -228,7 +253,6 @@ def split_date_input(date):
     date_date = date_base[0].split("-") #separate the day month and year
     date_time = date_base[1].split(":") #separate the time for hours and minutes
 
-    print(f"\n\nSPLIT DATE INPUT OUTPUT: {[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]}\n\n")
     #day, month, year, hour (in 24 hour format), minutes
     return [date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
 
@@ -238,7 +262,6 @@ def split_date_prev(date):
     date_base = date.split(" ") #separate the date and time
     date_date = date_base[0].split("-") #separating the day month and year
     date_time = date_base[1].split(":") #separating the hours and minutes and seconds
-    print(f"\n\nSPLIT DATE PREV OUTPUT: {[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]}\n\n")
 
     #day, month, year, hour (in 24 hour format), minutes
     return[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
@@ -268,9 +291,18 @@ def update_flight(request):
         if same_dep_flight != None: #aynı anda kalkan uçuş varsa
             for flight in same_dep_flight:
                 #aynı flight crew ya da airplane'i kullanamazlar
-                if (flight.flight_crew.crew_name == flight_crew_name or flight.airplane.plane_name == airplane_name):
+                if (flight.flight_crew.crew_name == flight_crew_name):
+                    message = "Another flight which departures at the same time is using the same flight crew. Please select an available one."
                     is_valid = False
-    
+
+                elif flight.airplane.plane_name == airplane_name:
+                    message = "Another flight which departures at the same time is using the same airplane. Please select an available one."
+                    is_valid = False
+
+                elif flight.flight_crew.crew_name == flight_crew_name and flight.airplane.plane_name == airplane_name:
+                    message = "Another flight which departures at the same time is using the same airplane and flight crew. Please select available ones."
+                    is_valid = False
+
         #CONVERTING INPUT DATE FOR COMPARISON
         dep_date_arr = split_date_input(dep_date)
         arr_date_arr = split_date_input(arr_date)
@@ -292,31 +324,47 @@ def update_flight(request):
             if the previous flight which uses the same crew or airplane hasn't landed, 
             a flight with the same crew or airplane can not depart
             """
-            if (prev_arr_date >= dep_date_input and (flight.flight_crew.crew_name==flight_crew_name or flight.airplane.plane_name==airplane_name)):
+
+            if prev_arr_date >= dep_date_input and flight.flight_crew.crew_name==flight_crew_name and flight.airplane.plane_name==airplane_name:
+                message = "There is a previous flight which uses the same airplane and flight crew that hasn't landed yet. Please select available ones."
                 is_valid = False
+
+            elif prev_arr_date >= dep_date_input and flight.flight_crew.crew_name==flight_crew_name:
+                message = "There is a previous flight which uses the same crew that hasn't landed yet. Please select an available flight crew."
+                is_valid = False
+
+            elif prev_arr_date >= dep_date_input and flight.airplane.plane_name==airplane_name:
+                message = "There is a previous flight which uses the same airplane that hasn't landed yet. Please select an available airplane."
+                is_valid = False
+
             
             """
             if the previous flight which uses the same crew or airplane has landed,
             the new flight with the same crew or airplane should depart from the same airport
             """
             if (prev_arr_date < dep_date_input and (flight.flight_crew.crew_name==flight_crew_name or flight.airplane.plane_name==airplane_name) and flight.destination_airport != dep_airport):
+                message = "There is a flight that uses the same airplane or flight crew which has landed. You have to depart from the airport which the previous flight has landed."
                 is_valid = False
 
             """
             only one flight can departure from a gate, multiple flights can not use the same gate
             """
-            
+            if (flight.gate_number == gate_number):
+                message = "There is another flight which departures from the same gate. Please select an available gate."
+                is_valid = False
         
         """
         destination and departure airport can not be the same
         """
         if (dep_airport == des_airport):
+            message = "Destination and departure airport can not be the same."
             is_valid = False
 
         """
         a flight can not arrive to its destination before the departure date
         """
         if (dep_date >= arr_date):
+            message = "A flight can not arrive before its departure date."
             is_valid = False
 
 
@@ -337,8 +385,14 @@ def update_flight(request):
                 })
             return HttpResponseRedirect(reverse("index"))
         else:
+            if message:
+                return render(request, "airlinecontroller/create_flight.html", {
+                    "message": message,
+                    "airplanes": Airplane.objects.all(),
+                    "flight_crews": FlightCrew.objects.all()
+                })
             return render(request, "airlinecontroller/index.html", {
-                "flights": flights 
+                "flights": flights
             })
     else:
         return render(request, "airlinecontroller/index.html")
