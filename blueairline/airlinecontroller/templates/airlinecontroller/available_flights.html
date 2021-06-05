@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block body %}
+{% if message %}
+    <h4>{{ message }}</h4>
+{% endif %}
 <h1 class="available_flights_header">Available Flights</h1>
 <ul class="list-group"></ul>
     {% for flight in available_flights %}

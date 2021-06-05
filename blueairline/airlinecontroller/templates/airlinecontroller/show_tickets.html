@@ -2,6 +2,12 @@
 {% load static %}
 
 {% block body %}
+
+<h4 class="hasnt_booked_tickets">
+    {% if message %}
+        {{ message }}
+    {% endif %}
+</h4>
 <ul class="list-group"></ul>
     {% for ticket in tickets %}
         <li class="list-group-item">
@@ -9,7 +15,7 @@
 
             <div class="small-flight-container">
                 <div>Passenger: {{ ticket.passenger.name }} {{ ticket.passenger.surname }}</div>
-                <div>Gate Number: {{ ticket.gate_number }}</div>
+                <div>Gate Number: {{ ticket.flight.gate_number }}</div>
                 <div>Status: {{ ticket.refund_status }}</div>
                 <div>Ticket Number: {{ ticket.pk }}</div>
             </div>

@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
-from datetime import datetime
+import datetime
 
 from .models import User, Flight, Passenger, Ticket, Airplane, Seat, FlightCrew
 
@@ -24,10 +24,47 @@ def index(request):
         "flights": flights
         })
 
+def available_flights_by_date(request):
+    flights_by_date = Flight.objects.order_by("departure_date")
+
+    departure_airports = set()
+    destination_airports = set()
+
+    for flight in flights_by_date:
+        departure_airports.add(flight.departure_airport)
+        destination_airports.add(flight.destination_airport)
+
+    return render(request, "airlinecontroller/index.html", {
+        "departure_airports": departure_airports,
+        "destination_airports": destination_airports,
+        "flights": flights_by_date
+        })
+def available_flights_by_price_filtered(request):
+    pass
+
+def available_flights_by_date_filtered(request):
+    pass
+    
+def available_flights_by_price(request):
+    flights_by_price = Flight.objects.order_by("price")
+
+    departure_airports = set()
+    destination_airports = set()
+
+    for flight in flights_by_price:
+        departure_airports.add(flight.departure_airport)
+        destination_airports.add(flight.destination_airport)
+
+    return render(request, "airlinecontroller/index.html", {
+        "departure_airports": departure_airports,
+        "destination_airports": destination_airports,
+        "flights": flights_by_price
+        })
+
 def init_seats(airplane):
     alphabet = ["A", "B", "C", "D", "E", "F"]
 
-    for i in range(airplane.capacity):
+    for i in range(1, airplane.capacity + 1):
         for j in range(len(alphabet)):
             seat_number = str(i) + alphabet[j]
             prev_seats = Seat.objects.filter(seat_number=seat_number, airplane=airplane)
@@ -42,6 +79,27 @@ def init_seats(airplane):
                     return render(request, "airlinecontroller/index.html", {
                         "message": "Seat already exists."
                     })
+
+
+def split_date_input(date):
+    #taking dates as string and splitting them for comparison - for form input
+    date = str(date)
+    date_base = date.split("T") #separate between the date and the time
+    date_date = date_base[0].split("-") #separate the day month and year
+    date_time = date_base[1].split(":") #separate the time for hours and minutes
+
+    #day, month, year, hour (in 24 hour format), minutes
+    return [date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
+
+def split_date_prev(date):
+    #taking dates as string and splitting them for comparison - for existing database flights
+    date = str(date)
+    date_base = date.split(" ") #separate the date and time
+    date_date = date_base[0].split("-") #separating the day month and year
+    date_time = date_base[1].split(":") #separating the hours and minutes and seconds
+
+    #day, month, year, hour (in 24 hour format), minutes
+    return[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
 
 def init_all_seats():
     airplanes = Airplane.objects.all()
@@ -58,7 +116,37 @@ def date_time_to_day(arr):
     result = int(arr[0]) + day_sum_month[int(arr[1])] + (int(arr[2])*365) + hour_to_day(arr[0], arr[1])
     return result
 
+def reset_seats():
+    flights = Flight.objects.all()
+    for flight in flights:
+
+        #convert the arrival date of the flight
+        arr_date_arr = split_date_prev(flight.arrival_date)
+        arrival_date = date_time_to_day(arr_date_arr)
+
+        #convert today's date
+        now = datetime.datetime.now()
+        now_date_arr = split_date_prev(now)
+        now_date = date_time_to_day(now_date_arr)
+
+        #if the plane has landed, empty its seats and update ticket status
+        if (arrival_date < now_date):
+            seats = Seat.objects.filter(airplane=flight.airplane)
+            tickets = Ticket.objects.filter(flight=flight)
+
+            for seat in seats:
+                seat.is_empty = True
+                seat.save()
+        
+            for ticket in tickets:
+                ticket.refund_status = "expired"
+                ticket.save()
+
+
 init_all_seats() #CREATE ALL SEATS FOR ALL AIRPLANES
+
+#empty the seats of arrived flights
+reset_seats()
 
 def book_flight(request, flight_id):
     flightObject = Flight.objects.get(pk=flight_id)
@@ -78,6 +166,11 @@ def book_flight(request, flight_id):
         seat.save()
 
         name_sur_arr = pass_name_sur.split()
+        if (len(name_sur_arr) < 2):
+            return render(request, "airlinecontroller/show_flight.html", {
+                    "message": "Please enter your name and surname together.",
+                    "flight": flightObject
+                })
 
         #CREATE PASSENGER
         previous_passenger = Passenger.objects.filter(name=name_sur_arr[0], surname=name_sur_arr[1])
@@ -130,12 +223,29 @@ def available_flights(request):
     if request.method == "POST":
         departure_select = request.POST["departure_select"]
         destination_select = request.POST["destination_select"]
+        dep_date_filter = request.POST["dep_date_filter"]
 
-        available_flights = Flight.objects.filter(destination_airport=destination_select, departure_airport=departure_select)
+        #convert input date
+        dep_date_filter_arr = split_date_input(dep_date_filter)
+        input_dep_date = date_time_to_day(dep_date_filter_arr)
 
-        return render(request, "airlinecontroller/available_flights.html", {
-            "available_flights": available_flights
+        #convert today's date
+        now = datetime.datetime.now()
+        now_date_arr = split_date_prev(now)
+        now_date = date_time_to_day(now_date_arr)
+
+        
+        if (input_dep_date < now_date): #expired flights
+            message = "You can not book a ticket for expired flights. Please select a departure date greater or equal to today."
+            return render(request, "airlinecontroller/available_flights.html", {
+            "message": message
         })
+        else:
+            available_flights = Flight.objects.filter(destination_airport=destination_select, departure_airport=departure_select, departure_date__gte=dep_date_filter)
+
+            return render(request, "airlinecontroller/available_flights.html", {
+            "available_flights": available_flights
+            })
 
     else:
         return render(request, "airlinecontroller/index.html")
@@ -203,11 +313,16 @@ def show_tickets(request):
                 "message": "Please provide correct information. There is no passenger matching with the information you have entered."
             })
 
-        tickets = passengerObject.tickets.all()
-
-        return render(request, "airlinecontroller/show_tickets.html", {
+        tickets = Ticket.objects.filter(passenger=passengerObject)
+        if (len(tickets) == 0):
+            return render(request, "airlinecontroller/show_tickets.html", {
+            "tickets": tickets,
+            "message": "You haven't booked a ticket yet. :("
+            })
+        else:
+            return render(request, "airlinecontroller/show_tickets.html", {
             "tickets": tickets
-        }) 
+            }) 
 
     else:
         return render(request, "airlinecontroller/index.html")
@@ -219,18 +334,23 @@ def update_ticket(request):
         pass_phone_num = request.POST["pass_phone_num"]
         pass_mail_add = request.POST["pass_mail_add"]
         pass_ticket_id = request.POST["pass_ticket_id"]
+        try: 
+            ticketObject = Ticket.objects.get(pk=pass_ticket_id)
+            flightObject = ticketObject.flight
+            seatObject = Seat.objects.get(seat_number=ticketObject.seat_number, airplane=flightObject.airplane)
 
-        ticketObject = Ticket.objects.get(pk=pass_ticket_id)
-        flightObject = ticketObject.flight
-        seatObject = Seat.objects.get(seat_number=ticketObject.seat_number, airplane=flightObject.airplane)
+            #ticket is refunded
+            ticketObject.refund_status = "refunded"
+            ticketObject.save()
 
-        #ticket is refunded
-        ticketObject.refund_status = "refunded"
-        ticketObject.save()
+            #the seat is available now
+            seatObject.is_empty = True
+            seatObject.save()
 
-        #the seat is available now
-        seatObject.is_empty = True
-        seatObject.save()
+        except Ticket.DoesNotExist:
+            return render(request, "airlinecontroller/show_refund_form.html", {
+                "message": "Please provide correct information."
+            })
 
         return render(request, "airlinecontroller/refund_feedback.html")
 
@@ -245,26 +365,6 @@ def create_flight(request):
             "flight_crews": crews,
             "airplanes": airplanes
     })
-
-def split_date_input(date):
-    #taking dates as string and splitting them for comparison - for form input
-    date = str(date)
-    date_base = date.split("T") #separate between the date and the time
-    date_date = date_base[0].split("-") #separate the day month and year
-    date_time = date_base[1].split(":") #separate the time for hours and minutes
-
-    #day, month, year, hour (in 24 hour format), minutes
-    return [date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
-
-def split_date_prev(date):
-    #taking dates as string and splitting them for comparison - for existing database flights
-    date = str(date)
-    date_base = date.split(" ") #separate the date and time
-    date_date = date_base[0].split("-") #separating the day month and year
-    date_time = date_base[1].split(":") #separating the hours and minutes and seconds
-
-    #day, month, year, hour (in 24 hour format), minutes
-    return[date_date[2], date_date[1], date_date[0], date_time[0], date_time[1]]
 
 
 def update_flight(request):

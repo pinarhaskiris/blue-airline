@@ -2,6 +2,11 @@
 {% load static %}
 
 {% block body %}
+    <h4>
+        {% if message %}
+            {{ message }}
+        {% endif %}
+    </h4>
 
     <h2>Refund Ticket</h2>
     <form id="refund_ticket_form" action="{% url 'update_ticket' %}" method="POST">
