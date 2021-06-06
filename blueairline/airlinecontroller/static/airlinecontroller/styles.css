@@ -27,17 +27,32 @@ ul {
     margin-top: 2.5%;
 }
 
+.form-control {
+    width: 50%;
+}
+
 a:last-of-type {
 	margin-left: auto;
 }
 
-ul {
+.flight-container {
     display: grid;
-    grid-template-columns: 20% 20% 20% 20%;
-
-
+    grid-template-columns: 30% 15% 30% 20% 5%;
+    grid-template-rows: 50% 50%;
+    align-content: center;
 }
 
+.flight-container-t {
+    display: grid;
+    grid-template-columns: 30% 15% 30% 25%;
+    grid-template-rows: 50% 50%;
+    align-content: center;
+}
+
+.filter-flight-container {
+    display: flex;
+    justify-content: flex-start;
+}
 
 .filter-menu {
     margin-left: 2rem;

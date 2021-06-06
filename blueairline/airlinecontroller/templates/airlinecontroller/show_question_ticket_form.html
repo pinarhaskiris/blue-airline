@@ -10,13 +10,16 @@
     <form id="question-ticket-form" action="{% url 'show_tickets' %}" method="POST">
         {% csrf_token %}
         <div class="form-group">
-            Name & Surname: <input id="pass_name_sur" name="pass_name_sur" class="form-control">
+            Name: <input id="pass_name" name="pass_name" class="form-control" required>
         </div>
         <div class="form-group">
-            Phone Number: <input id="pass_phone_num" name="pass_phone_num" class="form-control">
+            Surname: <input id="pass_sur" name="pass_sur" class="form-control" required>
         </div>
         <div class="form-group">
-            Email Address: <input id="pass_mail_add" name="pass_mail_add" class="form-control">
+            Phone Number: <input id="pass_phone_num" name="pass_phone_num" class="form-control" required>
+        </div>
+        <div class="form-group">
+            Email Address: <input id="pass_mail_add" name="pass_mail_add" class="form-control" required>
         </div>
 
         <input type="submit" class="btn btn-primary"/>

@@ -28,7 +28,7 @@
         </div>
 
         <div class="form-group">
-            Departure Date: <input id="dep_date_filter" name="dep_date_filter" class="form-control" type="datetime-local" value="2018-06-12T19:30">
+            Departure Date: <input id="dep_date_filter" name="dep_date_filter" class="form-control" type="datetime-local" value="2021-06-06T07:30">
 
         <input type="submit" class="btn btn-primary"/>
     </form>
@@ -37,7 +37,7 @@
     <div class="order_flight_list">
         Order:
         <a class="btn btn-light" href="{% url 'available_flights_by_price' %}">By Price (from cheapest to most expensive)</a>
-        <a class="btn btn-light" href="{% url 'available_flights_by_date' %}">By Date (from oldest to newest)</a>
+        <a class="btn btn-light" href="{% url 'available_flights_by_date' %}">By Date (from closest to furthest)</a>
     </div>
    
 
@@ -63,12 +63,13 @@
                 <div class="flight-price">{{ flight.price }} $</div>
             </div>
             
-            {% if user.is_authenticated %}
-
-                <a href="{% url 'delete_flight' flight.id %}" class="select-flight-link">Delete</a>
-            {% else %}
-                <a href="{% url 'show_flight' flight.id %}" class="select-flight-link">Select</a>
-            {% endif %}
+            <div class="small-container">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'delete_flight' flight.id %}" class="select-flight-link">Delete</a>
+                {% else %}
+                    <a href="{% url 'show_flight' flight.id %}" class="select-flight-link">Select</a>
+                {% endif %}
+            </div>
         </div>
         </li>
         {% endfor %}

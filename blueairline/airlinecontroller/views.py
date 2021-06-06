@@ -160,7 +160,8 @@ def book_flight(request, flight_id):
     flightObject = Flight.objects.get(pk=flight_id)
 
     if request.method == "POST":
-        pass_name_sur = request.POST["pass_name_sur"]
+        pass_sur = request.POST["pass_sur"]
+        pass_name = request.POST["pass_name"]
         pass_phone_num = request.POST["pass_phone_num"]
         pass_mail_add = request.POST["pass_mail_add"]
         pass_card_num = request.POST["pass_card_num"]
@@ -173,19 +174,12 @@ def book_flight(request, flight_id):
         seat.is_empty = False
         seat.save()
 
-        name_sur_arr = pass_name_sur.split()
-        if (len(name_sur_arr) < 2):
-            return render(request, "airlinecontroller/show_flight.html", {
-                    "message": "Please enter your name and surname together.",
-                    "flight": flightObject
-                })
-
         #CREATE PASSENGER
-        previous_passenger = Passenger.objects.filter(name=name_sur_arr[0], surname=name_sur_arr[1])
+        previous_passenger = Passenger.objects.filter(name=pass_name, surname=pass_sur)
         if (len(previous_passenger) == 0):
             try:
                 passengerItem = Passenger.create_passenger(
-                    name_sur_arr[0], name_sur_arr[1], pass_mail_add, pass_phone_num)
+                    pass_name, pass_sur, pass_mail_add, pass_phone_num)
                 passengerItem.save()
 
             except IntegrityError as e:
@@ -199,7 +193,7 @@ def book_flight(request, flight_id):
             ticketItem = Ticket.create_ticket(
                 seat_select, "active", 
                 flightObject,
-                Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], email_address=pass_mail_add, phone_number=pass_phone_num))
+                Passenger.objects.get(name=pass_name, surname=pass_sur, email_address=pass_mail_add, phone_number=pass_phone_num))
             ticketItem.save()
 
         except IntegrityError as e:
@@ -209,20 +203,22 @@ def book_flight(request, flight_id):
             })
 
         except Passenger.DoesNotExist:
-            return render(request, "airlinecontroller/show_flight.html", {
+            return render(request, "airlinecontroller/show_feedback.html", {
                     "message": "Please provide correct information. One or more of the passenger information you have entered is not correct.",
-                    "flight": flightObject
+                    "flightObject": flightObject
                 })
 
         return render(request, "airlinecontroller/show_feedback.html", {
-            "pass_name_sur": pass_name_sur,
+            "pass_name": pass_name,
+            "pass_sur": pass_sur,
             "pass_phone_num": pass_phone_num,
             "pass_mail_add": pass_mail_add,
             "pass_card_num": pass_card_num,
             "pass_safety_pin": pass_safety_pin,
             "flight": flightObject,
             "seat_select": seat_select,
-            "gate_number": flightObject.gate_number
+            "gate_number": flightObject.gate_number,
+            "flightObject": flightObject
         })
     else:
         return render(request, "airlinecontroller/index.html")
@@ -288,7 +284,6 @@ def show_flight(request, flight_id):
        })
 
 def delete_flight(request, flight_id):
-    
     flightObject = Flight.objects.get(pk=flight_id)
     flightObject.delete()
 
@@ -316,13 +311,13 @@ def show_question_ticket_form(request):
 
 def show_tickets(request):
     if request.method == "POST":
-        pass_name_sur = request.POST["pass_name_sur"]
+        pass_name = request.POST["pass_name"]
+        pass_sur = request.POST["pass_sur"]
         pass_phone_num = request.POST["pass_phone_num"]
         pass_mail_add = request.POST["pass_mail_add"]
 
-        name_sur_arr = pass_name_sur.split()
         try:
-            passengerObject = Passenger.objects.get(name=name_sur_arr[0], surname=name_sur_arr[1], phone_number=pass_phone_num, email_address=pass_mail_add)
+            passengerObject = Passenger.objects.get(name=pass_name, surname=pass_sur, phone_number=pass_phone_num, email_address=pass_mail_add)
         except Passenger.DoesNotExist:
             return render(request, "airlinecontroller/show_question_ticket_form.html", {
                 "message": "Please provide correct information. There is no passenger matching with the information you have entered."
@@ -345,7 +340,8 @@ def show_tickets(request):
 
 def update_ticket(request):
     if request.method == "POST":
-        pass_name_sur = request.POST["pass_name_sur"]
+        pass_name = request.POST["pass_name"]
+        pass_sur = request.POST["pass_sur"]
         pass_phone_num = request.POST["pass_phone_num"]
         pass_mail_add = request.POST["pass_mail_add"]
         pass_ticket_id = request.POST["pass_ticket_id"]
@@ -441,7 +437,7 @@ def update_flight(request):
             """
 
             if prev_arr_date >= dep_date_input and flight.flight_crew.crew_name==flight_crew_name and flight.airplane.plane_name==airplane_name:
-                message = "There is a previous flight which uses the same airplane and flight crew that hasn't landed yet. Please select available ones."
+                message = f"There is a previous flight which uses the same airplane and flight crew that hasn't landed yet. Please select available ones."
                 is_valid = False
 
             elif prev_arr_date >= dep_date_input and flight.flight_crew.crew_name==flight_crew_name:
@@ -452,15 +448,7 @@ def update_flight(request):
                 message = "There is a previous flight which uses the same airplane that hasn't landed yet. Please select an available airplane."
                 is_valid = False
 
-            
-            """
-            if the previous flight which uses the same crew or airplane has landed,
-            the new flight with the same crew or airplane should depart from the same airport
-            """
-            if (prev_arr_date < dep_date_input and (flight.flight_crew.crew_name==flight_crew_name or flight.airplane.plane_name==airplane_name) and flight.destination_airport != dep_airport):
-                message = "There is a flight that uses the same airplane or flight crew which has landed. You have to depart from the airport which the previous flight has landed."
-                is_valid = False
-
+    
             """
             only one flight can departure from a gate, multiple flights can not use the same gate
             """

@@ -2,18 +2,22 @@
 {% load static %}
 
 {% block body %}
+    {% if message %}
+        <h4>{{ message }}</h4>
+    {% else %}
 
-    <h1>Congrats!</h1>
-    <h2>Ticket Details</h2>
-    <div>
-        <div>{{ pass_name_sur }}</div>
-        <div>{{ pass_phone_num }}</div>
-        <div>{{ pass_mail_add }}</div>
-        <div>Seat Number: {{ seat_select }}</div>
-        <div>Gate Number: {{ gate_number }}</div>
-    </div>
+        <h1>Your have successfully purchased your ticket. Thank you for flying with us. :)</h1>
+        <h2>Ticket Details</h2>
+        <div>
+            <div>{{ pass_name}} {{pass_sur }}</div>
+            <div>{{ pass_phone_num }}</div>
+            <div>{{ pass_mail_add }}</div>
+            <div>Seat Number: {{ seat_select }}</div>
+            <div>Gate Number: {{ gate_number }}</div>
+        </div>
+    {% endif %}
+    <a href="{% url 'show_flight' flightObject.pk %}">Go Back To Booking</a>
+    <a href="{% url 'index' %}">See All Flights</a>
 
-    
-    
 
 {% endblock %}

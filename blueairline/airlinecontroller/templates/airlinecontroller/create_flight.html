@@ -10,16 +10,16 @@
     <form id="new_flight_form" action="{% url 'update_flight' %}" method="POST">
         {% csrf_token %}
         <div class="form-group">
-            From: <input id="dep_airport" name="dep_airport" class="form-control">
+            From: <input id="dep_airport" name="dep_airport" class="form-control" required>
         </div>
         <div class="form-group">
-            To: <input id="des_airport" name="des_airport" class="form-control">
+            To: <input id="des_airport" name="des_airport" class="form-control" required>
         </div>
         <div class="form-group">
-            Departure Date: <input id="dep_date" name="dep_date" class="form-control" type="datetime-local" value="2018-06-12T19:30">
+            Departure Date: <input id="dep_date" name="dep_date" class="form-control" type="datetime-local" value="2021-06-06T07:30" required>
         </div>
         <div class="form-group">
-            Arrival Date: <input id="arr_date" name="arr_date" class="form-control" type="datetime-local" value="2018-06-12T19:30">
+            Arrival Date: <input id="arr_date" name="arr_date" class="form-control" type="datetime-local" value="2021-06-06T07:30" required>
         </div>
 
         <div> Flight Crew:
@@ -39,10 +39,10 @@
         </div>
 
         <div class="form-group">
-            Gate Number: <input id="gate_number" name="gate_number" class="form-control">
+            Gate Number: <input id="gate_number" name="gate_number" class="form-control" required>
         </div>
         <div class="form-group">
-            Price: <input id="price" name="price" class="form-control">
+            Price: <input id="price" name="price" class="form-control" required>
         </div>
 
         <input type="submit" class="btn btn-primary"/>
