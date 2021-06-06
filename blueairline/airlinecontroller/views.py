@@ -13,15 +13,28 @@ def index(request):
     flights = Flight.objects.all()
     departure_airports = set()
     destination_airports = set()
+    non_expired_flights = []
+
+    #convert today's date
+    now = datetime.datetime.now()
+    now_date_arr = split_date_prev(now)
+    now_date = date_time_to_day(now_date_arr)
 
     for flight in flights:
         departure_airports.add(flight.departure_airport)
         destination_airports.add(flight.destination_airport)
+
+        #convert flight's departure date
+        dep_date_arr = split_date_prev(flight.departure_date)
+        prev_dep_date = date_time_to_day(dep_date_arr)
+
+        if (prev_dep_date >= now_date):
+            non_expired_flights.append(flight)
     
     return render(request, "airlinecontroller/index.html", {
         "departure_airports": departure_airports,
         "destination_airports": destination_airports,
-        "flights": flights
+        "flights": non_expired_flights
         })
 
 def available_flights_by_date(request):
@@ -39,11 +52,6 @@ def available_flights_by_date(request):
         "destination_airports": destination_airports,
         "flights": flights_by_date
         })
-def available_flights_by_price_filtered(request):
-    pass
-
-def available_flights_by_date_filtered(request):
-    pass
     
 def available_flights_by_price(request):
     flights_by_price = Flight.objects.order_by("price")
@@ -240,8 +248,15 @@ def available_flights(request):
             return render(request, "airlinecontroller/available_flights.html", {
             "message": message
         })
+
         else:
-            available_flights = Flight.objects.filter(destination_airport=destination_select, departure_airport=departure_select, departure_date__gte=dep_date_filter)
+            available_flights = Flight.objects.filter(destination_airport=destination_select, departure_airport=departure_select, departure_date__gte=dep_date_filter).order_by("departure_date")
+            if (len(available_flights) == 0):
+                message = "Currently, there are no flight for the selected destination and date. Please select an another date or destination."
+                return render(request, "airlinecontroller/available_flights.html", {
+                "available_flights": available_flights,
+                "message": message
+                })
 
             return render(request, "airlinecontroller/available_flights.html", {
             "available_flights": available_flights
@@ -449,7 +464,7 @@ def update_flight(request):
             """
             only one flight can departure from a gate, multiple flights can not use the same gate
             """
-            if (flight.gate_number == gate_number):
+            if (flight.gate_number == gate_number and prev_dep_date == dep_date_input):
                 message = "There is another flight which departures from the same gate. Please select an available gate."
                 is_valid = False
         

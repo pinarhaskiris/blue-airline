@@ -39,8 +39,8 @@ class Airplane(models.Model):
         return f"{self.plane_name}"
 
 class Flight(models.Model):
-    departure_airport = models.CharField(max_length=5)
-    destination_airport = models.CharField(max_length=5)
+    departure_airport = models.CharField(max_length=30)
+    destination_airport = models.CharField(max_length=30)
     departure_date = models.DateTimeField("Departure Date")
     arrival_date = models.DateTimeField("Arrival Date")
     gate_number = models.CharField(max_length=10, default="")

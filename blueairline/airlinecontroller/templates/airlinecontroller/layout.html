@@ -14,7 +14,9 @@
     </head>
     <body>
         <div class="container">
-            <h1 id="blue-airlines-header">Blue Airlines</h1>
+            <div class="blue-airlines-header-container">
+                <h1 class="blue-airlines-header"><a class="blue-airlines-header" href="{% url 'index' %}">Blue Airlines</a></h1>
+            </div>
                 {% if user.is_authenticated %}
                 <a class="btn btn-sm btn-outline-primary" href="{% url 'create_flight' %}">Create Flight</a>
                 <a class="btn btn-sm btn-outline-primary" href="{% url 'logout' %}">Log Out</a>

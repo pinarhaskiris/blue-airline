@@ -29,7 +29,6 @@
 
         <div class="form-group">
             Departure Date: <input id="dep_date_filter" name="dep_date_filter" class="form-control" type="datetime-local" value="2018-06-12T19:30">
-        </div>
 
         <input type="submit" class="btn btn-primary"/>
     </form>
@@ -37,8 +36,8 @@
     <h1 class="available_flights_header">All available flights</h1>
     <div class="order_flight_list">
         Order:
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'available_flights_by_price' %}">By Price (from cheapest to most expensive)</a>
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'available_flights_by_date' %}">By Date (from oldest to newest)</a>
+        <a class="btn btn-light" href="{% url 'available_flights_by_price' %}">By Price (from cheapest to most expensive)</a>
+        <a class="btn btn-light" href="{% url 'available_flights_by_date' %}">By Date (from oldest to newest)</a>
     </div>
    
 
@@ -46,19 +45,23 @@
         {% for flight in flights %}
         <li class="list-group-item">
         <div class="flight-container">
-            <div class="small-flight-container">
+            <div class="small-container">
                 <div>{{ flight.departure_airport }}</div>
                 <div>{{ flight.departure_date }}</div>
             </div>  
-            
-            <div class="plane-icon"><i class="fas fa-plane"></i></div>
 
-            <div class="small-flight-container">
+            <div class="small-container">
+                <div class="plane-icon"><i class="fas fa-plane"></i></div>
+            </div>
+
+            <div class="small-container">
                 <div>{{ flight.destination_airport }}</div>
                 <div>{{ flight.arrival_date }}</div>
             </div>
 
-            <div class="flight-price">{{ flight.price }} $</div>
+            <div class="small-container">
+                <div class="flight-price">{{ flight.price }} $</div>
+            </div>
             
             {% if user.is_authenticated %}
 

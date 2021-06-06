@@ -18,8 +18,5 @@ urlpatterns = [
     path("show_tickets", views.show_tickets, name="show_tickets"),
     path("delete_flight/<int:flight_id>", views.delete_flight, name="delete_flight"),
     path("available_flights_by_price", views.available_flights_by_price, name="available_flights_by_price"),
-    path("available_flights_by_date", views.available_flights_by_date, name="available_flights_by_date"),
-    path("available_flights_by_price_filtered", views.available_flights_by_price_filtered, name="available_flights_by_price_filtered"),
-    path("available_flights_by_date_filtered", views.available_flights_by_date_filtered, name="available_flights_by_date_filtered")
-
+    path("available_flights_by_date", views.available_flights_by_date, name="available_flights_by_date")
 ]
