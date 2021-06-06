@@ -16,8 +16,13 @@
             <div>Gate Number: {{ gate_number }}</div>
         </div>
     {% endif %}
-    <a href="{% url 'show_flight' flightObject.pk %}">Go Back To Booking</a>
-    <a href="{% url 'index' %}">See All Flights</a>
+    <div>
+        <a href="{% url 'show_flight' flightObject.pk %}">Go Back To Booking</a>
+    </div>
+    <div>
+        <a href="{% url 'index' %}">See All Flights</a>
+    </div>
+
 
 
 {% endblock %}
